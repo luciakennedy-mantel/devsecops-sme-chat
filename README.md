@@ -1,56 +1,60 @@
-# DevSecOps SME Platform 🛡️🤖
+# DevSecOps Chat Assistant 🛡️🤖
 
-A DevSecOps Subject Matter Expert platform with AI-powered documentation assistant featuring Claude 3.5 Sonnet integration and specialized knowledge base.
+A DevSecOps documentation chat assistant with AI integration and specialized knowledge base.
 
-## Features
+## Quick Setup
 
-- 🤖 **AI Chat Assistant** with Claude 3.5 Sonnet via Mantel Group gateway
-- 🌙 **Dark mode interface** with typewriter effect and animated robot icons
-- 📚 **DevSecOps Knowledge Base** - CUJs, SLIs, SLOs, observability best practices
-- 🔧 **MCP server integration** for extensible AI capabilities
-- 📱 **Mobile responsive** design
-
-## Quick Start
-
-1. **Install dependencies**
+1. **Clone and install**
    ```bash
+   git clone https://github.com/luciakennedy-mantel/devsecops-sme-chat.git
+   cd devsecops-sme-chat
    npm install
    ```
 
-2. **Start the basic platform**
+2. **Add your API key**
    ```bash
-   npm start
+   cp .env.example .env
+   # Edit .env and add your OpenAI API key
    ```
-   Access at: http://localhost:3000
 
-3. **For AI Chat (Advanced)**
+3. **Start the chat**
    ```bash
    cd ../Cline/MCP/devsecops-docs-server
    npm install
    ./start-chat.sh
    ```
-   Access AI chat at: http://localhost:3001
+   
+   Access at: http://localhost:3001
 
-## What's Included
+## Features
 
-- **Critical User Journeys (CUJs)** templates and guidance
-- **SLI/SLO best practices** and templates
-- **Observability maturity framework** from CBA
-- **DevSecOps documentation** and methodologies
-- **Interactive AI assistant** for DevSecOps questions
-
-## Usage
-
-Ask the AI assistant questions like:
-- "What is a Critical User Journey?"
-- "How do I create SLIs for my service?"
-- "Show me observability maturity levels"
-- "What are DevSecOps best practices?"
+- 🤖 **AI Chat** with your own OpenAI API key
+- 🌙 **Dark mode interface** with typewriter effect
+- 📚 **DevSecOps knowledge base** - CUJs, SLIs, SLOs
+- 🎨 **Animated UI** with bouncing robot icons
+- 📱 **Mobile responsive**
 
 ## Configuration
 
-Copy `.env.example` to `.env` and configure your settings for AI integration.
+Edit `.env` file:
+```env
+OPENAI_API_KEY=your_api_key_here
+OPENAI_MODEL=gpt-4
+OPENAI_BASE_URL=https://api.openai.com/v1
+```
+
+## What's Included
+
+- Critical User Journeys (CUJs) templates
+- SLI/SLO best practices and examples
+- Observability maturity framework
+- DevSecOps documentation and guides
+
+Ask questions like:
+- "What is a Critical User Journey?"
+- "How do I create SLIs for my service?"
+- "Show me SLO examples"
 
 ---
 
-Built for DevSecOps teams 🛡️
+Ready to use with your own API key! 🚀
