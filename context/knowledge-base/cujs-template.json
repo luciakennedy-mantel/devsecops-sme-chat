@@ -1,0 +1,87 @@
+{
+  "metadata": {
+    "version": "1.0",
+    "lastUpdated": "2025-01-18",
+    "description": "Critical User Journeys template for DevSecOps platform",
+    "author": "DevSecOps SME Platform"
+  },
+  "cujs": [
+    {
+      "id": "cuj-template-001",
+      "name": "Example: Secure Code Deployment",
+      "description": "End-to-end secure deployment process from code commit to production",
+      "category": "deployment",
+      "priority": "high",
+      "steps": [
+        {
+          "step": 1,
+          "name": "Code Commit",
+          "description": "Developer commits code to version control",
+          "security_checks": ["pre-commit hooks", "code signing"]
+        },
+        {
+          "step": 2,
+          "name": "CI Pipeline Trigger",
+          "description": "Automated CI pipeline starts",
+          "security_checks": ["SAST scanning", "dependency scanning"]
+        },
+        {
+          "step": 3,
+          "name": "Build & Test",
+          "description": "Code is built and tested",
+          "security_checks": ["container scanning", "license compliance"]
+        },
+        {
+          "step": 4,
+          "name": "Security Gate",
+          "description": "Security validation before deployment",
+          "security_checks": ["DAST scanning", "compliance validation"]
+        },
+        {
+          "step": 5,
+          "name": "Deployment",
+          "description": "Code deployed to target environment",
+          "security_checks": ["runtime protection", "monitoring activation"]
+        }
+      ],
+      "slis": [
+        {
+          "name": "Deployment Success Rate",
+          "description": "Percentage of successful deployments",
+          "measurement": "successful_deployments / total_deployments * 100"
+        },
+        {
+          "name": "Security Scan Duration",
+          "description": "Time taken for security scans to complete",
+          "measurement": "scan_end_time - scan_start_time"
+        }
+      ],
+      "slos": [
+        {
+          "name": "Deployment Success SLO",
+          "description": "Maintain 99.5% deployment success rate",
+          "target": "99.5%",
+          "measurement_window": "30 days"
+        },
+        {
+          "name": "Security Scan SLO",
+          "description": "Security scans complete within 10 minutes",
+          "target": "< 10 minutes",
+          "measurement_window": "per deployment"
+        }
+      ],
+      "risks": [
+        {
+          "risk": "Security scan failure",
+          "impact": "high",
+          "mitigation": "Automated rollback and notification"
+        },
+        {
+          "risk": "Deployment pipeline compromise",
+          "impact": "critical",
+          "mitigation": "Pipeline integrity monitoring and access controls"
+        }
+      ]
+    }
+  ]
+}

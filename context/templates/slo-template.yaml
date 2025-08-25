@@ -1,0 +1,240 @@
+# SLO Template for DevSecOps Platform
+# Version: 1.0
+# Last Updated: 2025-01-18
+# Purpose: Template for defining Service Level Objectives
+
+metadata:
+  version: "1.0"
+  created_date: "2025-01-18"
+  template_type: "SLO Definition"
+  category: "DevSecOps"
+
+# Service Level Objectives Template
+slos:
+  - name: "deployment_success_rate"
+    display_name: "Deployment Success Rate"
+    description: "Percentage of successful deployments to production"
+    service: "deployment-pipeline"
+    category: "reliability"
+    
+    # SLI Definition
+    sli:
+      name: "deployment_success_percentage"
+      description: "Ratio of successful deployments to total deployments"
+      measurement_method: "event_based"
+      query: |
+        sum(rate(deployments_total{status="success"}[5m])) /
+        sum(rate(deployments_total[5m])) * 100
+      unit: "percentage"
+    
+    # SLO Target
+    target:
+      value: 99.5
+      unit: "percentage"
+      comparison: ">="
+    
+    # Time Window
+    time_window:
+      duration: "30d"
+      type: "rolling"
+    
+    # Alerting
+    alerting:
+      burn_rate_threshold: 2.0
+      notification_channels:
+        - "slack-devsecops"
+        - "email-oncall"
+      severity: "high"
+    
+    # Error Budget
+    error_budget:
+      policy: "burn_rate"
+      consumption_rate_threshold: 10.0  # percent per hour
+      actions:
+        - type: "freeze_deployments"
+          threshold: 90  # when 90% of error budget consumed
+        - type: "escalate"
+          threshold: 95
+
+  - name: "security_scan_duration"
+    display_name: "Security Scan Duration"
+    description: "Time taken for security scans to complete in CI/CD pipeline"
+    service: "security-scanner"
+    category: "performance"
+    
+    sli:
+      name: "scan_duration_p95"
+      description: "95th percentile of security scan duration"
+      measurement_method: "distribution"
+      query: |
+        histogram_quantile(0.95,
+          rate(security_scan_duration_seconds_bucket[5m]))
+      unit: "seconds"
+    
+    target:
+      value: 600  # 10 minutes
+      unit: "seconds"
+      comparison: "<="
+    
+    time_window:
+      duration: "7d"
+      type: "rolling"
+    
+    alerting:
+      burn_rate_threshold: 1.5
+      notification_channels:
+        - "slack-security"
+        - "email-security-team"
+      severity: "medium"
+
+  - name: "vulnerability_remediation_time"
+    display_name: "Critical Vulnerability Remediation Time"
+    description: "Time to remediate critical security vulnerabilities"
+    service: "vulnerability-management"
+    category: "security"
+    
+    sli:
+      name: "critical_vuln_remediation_p90"
+      description: "90th percentile time to remediate critical vulnerabilities"
+      measurement_method: "distribution"
+      query: |
+        histogram_quantile(0.90,
+          rate(vulnerability_remediation_duration_hours_bucket{severity="critical"}[24h]))
+      unit: "hours"
+    
+    target:
+      value: 24  # 24 hours
+      unit: "hours"
+      comparison: "<="
+    
+    time_window:
+      duration: "30d"
+      type: "rolling"
+    
+    alerting:
+      burn_rate_threshold: 1.0
+      notification_channels:
+        - "slack-security"
+        - "email-ciso"
+      severity: "critical"
+
+  - name: "api_availability"
+    display_name: "API Availability"
+    description: "Availability of critical API endpoints"
+    service: "api-gateway"
+    category: "availability"
+    
+    sli:
+      name: "api_success_rate"
+      description: "Percentage of successful API requests (non-5xx responses)"
+      measurement_method: "event_based"
+      query: |
+        sum(rate(http_requests_total{code!~"5.."}[5m])) /
+        sum(rate(http_requests_total[5m])) * 100
+      unit: "percentage"
+    
+    target:
+      value: 99.9
+      unit: "percentage"
+      comparison: ">="
+    
+    time_window:
+      duration: "30d"
+      type: "rolling"
+    
+    alerting:
+      burn_rate_threshold: 5.0
+      notification_channels:
+        - "slack-platform"
+        - "pagerduty-oncall"
+      severity: "critical"
+
+# SLO Dashboard Configuration
+dashboard:
+  title: "DevSecOps SLO Dashboard"
+  refresh_interval: "1m"
+  panels:
+    - title: "SLO Compliance Overview"
+      type: "stat"
+      targets:
+        - expr: "slo_compliance_percentage"
+    
+    - title: "Error Budget Burn Rate"
+      type: "graph"
+      targets:
+        - expr: "slo_error_budget_burn_rate"
+    
+    - title: "SLI Trends"
+      type: "graph"
+      targets:
+        - expr: "sli_value"
+
+# Reporting Configuration
+reporting:
+  frequency: "weekly"
+  recipients:
+    - "devsecops-team@company.com"
+    - "platform-team@company.com"
+  
+  metrics:
+    - slo_compliance_percentage
+    - error_budget_remaining
+    - sli_trend_analysis
+    - incident_correlation
+
+# Integration Settings
+integrations:
+  monitoring:
+    prometheus:
+      endpoint: "http://prometheus:9090"
+      scrape_interval: "15s"
+    
+  alerting:
+    alertmanager:
+      endpoint: "http://alertmanager:9093"
+    
+  incident_management:
+    pagerduty:
+      integration_key: "${PAGERDUTY_INTEGRATION_KEY}"
+    
+  communication:
+    slack:
+      webhook_url: "${SLACK_WEBHOOK_URL}"
+      channels:
+        - "#devsecops-alerts"
+        - "#platform-incidents"
+
+# Validation Rules
+validation:
+  slo_target_range:
+    min: 90.0
+    max: 99.99
+  
+  time_window_options:
+    - "1d"
+    - "7d"
+    - "30d"
+    - "90d"
+  
+  required_fields:
+    - name
+    - description
+    - sli
+    - target
+    - time_window
+
+# Usage Instructions
+usage:
+  steps:
+    1. "Copy this template for each new SLO"
+    2. "Customize the SLI query for your specific metrics"
+    3. "Set appropriate target values based on business requirements"
+    4. "Configure alerting thresholds and notification channels"
+    5. "Deploy using your SLO management tool"
+  
+  best_practices:
+    - "Start with achievable targets and iterate"
+    - "Align SLOs with user experience and business impact"
+    - "Review and adjust SLOs regularly based on data"
+    - "Ensure SLIs are measurable and actionable"
+    - "Document the rationale behind each SLO"

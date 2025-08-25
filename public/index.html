@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DevSecOps SME Platform</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            width: 95%;
+            max-width: 1200px;
+            height: 90vh;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            display: flex;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 300px;
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo h1 {
+            font-size: 24px;
+            color: #3498db;
+            margin-bottom: 5px;
+        }
+
+        .logo p {
+            font-size: 12px;
+            color: #bdc3c7;
+        }
+
+        .upload-section {
+            margin-bottom: 30px;
+        }
+
+        .upload-section h3 {
+            margin-bottom: 15px;
+            color: #3498db;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-input {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .file-input-label {
+            display: block;
+            padding: 10px 15px;
+            background: #3498db;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: center;
+            transition: background 0.3s;
+        }
+
+        .file-input-label:hover {
+            background: #2980b9;
+        }
+
+        .upload-btn {
+            width: 100%;
+            padding: 10px;
+            background: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background 0.3s;
+        }
+
+        .upload-btn:hover {
+            background: #229954;
+        }
+
+        .upload-btn:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+        }
+
+        .knowledge-stats {
+            background: #34495e;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .knowledge-stats h3 {
+            color: #3498db;
+            margin-bottom: 10px;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        .quick-actions {
+            flex: 1;
+        }
+
+        .quick-actions h3 {
+            color: #3498db;
+            margin-bottom: 15px;
+        }
+
+        .action-btn {
+            width: 100%;
+            padding: 10px;
+            background: #8e44ad;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 10px;
+            transition: background 0.3s;
+        }
+
+        .action-btn:hover {
+            background: #7d3c98;
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: #f8f9fa;
+            padding: 20px;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .header h2 {
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        .messages {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            max-height: calc(100vh - 300px);
+            scroll-behavior: smooth;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            padding: 15px;
+            border-radius: 10px;
+            max-width: 80%;
+        }
+
+        .message.user {
+            background: #3498db;
+            color: white;
+            margin-left: auto;
+        }
+
+        .message.bot {
+            background: white;
+            border: 1px solid #dee2e6;
+            color: #2c3e50;
+        }
+
+        .message-content {
+            margin-bottom: 5px;
+        }
+
+        .message-time {
+            font-size: 12px;
+            opacity: 0.7;
+        }
+
+        .input-container {
+            display: flex;
+            gap: 10px;
+        }
+
+        .message-input {
+            flex: 1;
+            padding: 15px;
+            border: 1px solid #dee2e6;
+            border-radius: 25px;
+            outline: none;
+            font-size: 16px;
+        }
+
+        .send-btn {
+            padding: 15px 25px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .send-btn:hover {
+            background: #2980b9;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #6c757d;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .json-display {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            overflow-x: auto;
+            margin-top: 10px;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+
+        .status-connected {
+            background: #27ae60;
+        }
+
+        .status-disconnected {
+            background: #e74c3c;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+                height: 100vh;
+                width: 100%;
+                border-radius: 0;
+            }
+
+            .sidebar {
+                width: 100%;
+                height: auto;
+                max-height: 40vh;
+                overflow-y: auto;
+            }
+
+            .main-content {
+                flex: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div class="logo">
+                <h1>DevSecOps SME</h1>
+                <p>Critical User Journeys • SLIs • SLOs</p>
+                <div style="margin-top: 10px;">
+                    <span class="status-indicator status-disconnected" id="connectionStatus"></span>
+                    <span id="connectionText">Connecting...</span>
+                </div>
+            </div>
+
+            <div class="upload-section">
+                <h3>📄 Upload PDF</h3>
+                <div class="file-input-wrapper">
+                    <input type="file" id="pdfFile" class="file-input" accept=".pdf">
+                    <label for="pdfFile" class="file-input-label">Choose PDF File</label>
+                </div>
+                <button class="upload-btn" id="uploadBtn" disabled>Upload & Process</button>
+                <div id="uploadStatus" style="margin-top: 10px; font-size: 12px;"></div>
+            </div>
+
+            <div class="knowledge-stats" id="knowledgeStats">
+                <h3>📊 Knowledge Base</h3>
+                <div class="stat-item">
+                    <span>CUJs:</span>
+                    <span id="cujCount">0</span>
+                </div>
+                <div class="stat-item">
+                    <span>SLIs:</span>
+                    <span id="sliCount">0</span>
+                </div>
+                <div class="stat-item">
+                    <span>SLOs:</span>
+                    <span id="sloCount">0</span>
+                </div>
+                <div class="stat-item">
+                    <span>Best Practices:</span>
+                    <span id="bestPracticesCount">0</span>
+                </div>
+            </div>
+
+            <div class="quick-actions">
+                <h3>🚀 Quick Actions</h3>
+                <button class="action-btn" onclick="sendQuickMessage('Show all CUJs', 'cujs')">View CUJs</button>
+                <button class="action-btn" onclick="sendQuickMessage('Show all SLIs', 'slis')">View SLIs</button>
+                <button class="action-btn" onclick="sendQuickMessage('Show all SLOs', 'slos')">View SLOs</button>
+                <button class="action-btn" onclick="sendQuickMessage('security recommendations', 'recommendations')">Security Tips</button>
+                <button class="action-btn" onclick="sendQuickMessage('monitoring recommendations', 'recommendations')">Monitoring Tips</button>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="header">
+                <h2>DevSecOps SME Assistant</h2>
+                <p>Ask questions about Critical User Journeys, SLIs, SLOs, or upload PDFs for analysis</p>
+            </div>
+
+            <div class="chat-container">
+                <div class="messages" id="messages">
+                    <div class="message bot">
+                        <div class="message-content">
+                            👋 Welcome to the DevSecOps SME Platform! I can help you with:
+                            <br><br>
+                            • Analyzing PDF documents for DevSecOps content
+                            <br>• Finding Critical User Journeys (CUJs)
+                            <br>• Identifying Service Level Indicators (SLIs) and Objectives (SLOs)
+                            <br>• Providing DevSecOps recommendations
+                            <br>• Searching through your knowledge base
+                            <br><br>
+                            Upload a PDF to get started, or ask me a question!
+                        </div>
+                        <div class="message-time">System • Just now</div>
+                    </div>
+                </div>
+
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    Processing your request...
+                </div>
+
+                <div class="input-container">
+                    <input type="text" class="message-input" id="messageInput" placeholder="Ask about DevSecOps, CUJs, SLIs, SLOs..." maxlength="500">
+                    <button class="send-btn" id="sendBtn">Send</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Socket.IO
+        const socket = io();
+        
+        // DOM elements
+        const messagesContainer = document.getElementById('messages');
+        const messageInput = document.getElementById('messageInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const loadingDiv = document.getElementById('loading');
+        const pdfFileInput = document.getElementById('pdfFile');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const uploadStatus = document.getElementById('uploadStatus');
+        const connectionStatus = document.getElementById('connectionStatus');
+        const connectionText = document.getElementById('connectionText');
+
+        // Connection status
+        socket.on('connect', () => {
+            connectionStatus.className = 'status-indicator status-connected';
+            connectionText.textContent = 'Connected';
+            updateKnowledgeStats();
+        });
+
+        socket.on('disconnect', () => {
+            connectionStatus.className = 'status-indicator status-disconnected';
+            connectionText.textContent = 'Disconnected';
+        });
+
+        // File upload handling
+        pdfFileInput.addEventListener('change', (e) => {
+            uploadBtn.disabled = !e.target.files[0];
+        });
+
+        uploadBtn.addEventListener('click', async () => {
+            const file = pdfFileInput.files[0];
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append('pdf', file);
+
+            uploadBtn.disabled = true;
+            uploadStatus.innerHTML = '<span style="color: #f39c12;">Uploading and processing...</span>';
+
+            try {
+                const response = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    uploadStatus.innerHTML = `<span style="color: #27ae60;">✓ ${result.summary}</span>`;
+                    addMessage('system', `PDF processed successfully! Extracted ${result.extractedConcepts.cujs} CUJs, ${result.extractedConcepts.slis} SLIs, ${result.extractedConcepts.slos} SLOs, and ${result.extractedConcepts.bestPractices} best practices.`);
+                    updateKnowledgeStats();
+                    pdfFileInput.value = '';
+                } else {
+                    uploadStatus.innerHTML = `<span style="color: #e74c3c;">✗ ${result.error}</span>`;
+                }
+            } catch (error) {
+                uploadStatus.innerHTML = `<span style="color: #e74c3c;">✗ Upload failed: ${error.message}</span>`;
+            } finally {
+                uploadBtn.disabled = false;
+            }
+        });
+
+        // Chat functionality
+        function addMessage(sender, content, timestamp = null) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            
+            const time = timestamp ? new Date(timestamp).toLocaleTimeString() : new Date().toLocaleTimeString();
+            
+            let displayContent = content;
+            if (typeof content === 'object') {
+                displayContent = formatObjectResponse(content);
+            }
+            
+            messageDiv.innerHTML = `
+                <div class="message-content">${displayContent}</div>
+                <div class="message-time">${sender} • ${time}</div>
+            `;
+            
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function formatObjectResponse(obj) {
+            let html = '';
+            
+            // Show helpful message if no results
+            if (obj.helpfulMessage) {
+                html += `<div style="background: #fff3cd; border: 1px solid #ffeaa7; padding: 10px; border-radius: 5px; margin-bottom: 10px; color: #856404;">
+                    💡 ${obj.helpfulMessage}
+                </div>`;
+            }
+            
+            if (obj.cujs && obj.cujs.length > 0) {
+                html += '<strong>🎯 Critical User Journeys:</strong><br>';
+                obj.cujs.forEach(cuj => {
+                    html += `• ${cuj}<br>`;
+                });
+                html += '<br>';
+            }
+            
+            if (obj.slis && obj.slis.length > 0) {
+                html += '<strong>📊 Service Level Indicators:</strong><br>';
+                obj.slis.forEach(sli => {
+                    html += `• ${sli}<br>`;
+                });
+                html += '<br>';
+            }
+            
+            if (obj.slos && obj.slos.length > 0) {
+                html += '<strong>🎯 Service Level Objectives:</strong><br>';
+                obj.slos.forEach(slo => {
+                    html += `• ${slo}<br>`;
+                });
+                html += '<br>';
+            }
+            
+            if (obj.recommendations && obj.recommendations.length > 0) {
+                html += '<strong>💡 Recommendations:</strong><br>';
+                obj.recommendations.forEach(rec => {
+                    html += `• ${rec}<br>`;
+                });
+                html += '<br>';
+            }
+            
+            if (obj.results) {
+                html += '<strong>🔍 Search Results:</strong><br>';
+                if (obj.results.cujs && obj.results.cujs.length > 0) {
+                    html += `<em>CUJs (${obj.results.cujs.length}):</em><br>`;
+                    obj.results.cujs.forEach(cuj => html += `• ${cuj}<br>`);
+                    html += '<br>';
+                }
+                if (obj.results.slis && obj.results.slis.length > 0) {
+                    html += `<em>SLIs (${obj.results.slis.length}):</em><br>`;
+                    obj.results.slis.forEach(sli => html += `• ${sli}<br>`);
+                    html += '<br>';
+                }
+                if (obj.results.slos && obj.results.slos.length > 0) {
+                    html += `<em>SLOs (${obj.results.slos.length}):</em><br>`;
+                    obj.results.slos.forEach(slo => html += `• ${slo}<br>`);
+                    html += '<br>';
+                }
+                if (obj.results.bestPractices && obj.results.bestPractices.length > 0) {
+                    html += `<em>Best Practices (${obj.results.bestPractices.length}):</em><br>`;
+                    obj.results.bestPractices.forEach(bp => html += `• ${bp}<br>`);
+                    html += '<br>';
+                }
+                if (obj.results.pdfMatches && obj.results.pdfMatches.length > 0) {
+                    html += `<em>PDF Matches (${obj.results.pdfMatches.length}):</em><br>`;
+                    obj.results.pdfMatches.forEach(match => {
+                        html += `• <strong>${match.filename}</strong><br>`;
+                        if (match.relevantSnippets && match.relevantSnippets.length > 0) {
+                            match.relevantSnippets.forEach(snippet => {
+                                html += `  - ${snippet}<br>`;
+                            });
+                        }
+                    });
+                    html += '<br>';
+                }
+            }
+            
+            // Show total matches if available
+            if (obj.totalMatches !== undefined) {
+                html += `<small style="color: #6c757d;">Total matches: ${obj.totalMatches}</small><br>`;
+            }
+            
+            if (!html || html.trim() === '') {
+                html = '<div class="json-display">' + JSON.stringify(obj, null, 2) + '</div>';
+            }
+            
+            return html;
+        }
+
+        function sendMessage(message, type = 'ai_chat') {
+            if (!message.trim()) return;
+            
+            addMessage('user', message);
+            messageInput.value = '';
+            showLoading(true);
+            
+            socket.emit('chat_message', { message, type });
+        }
+
+        function sendQuickMessage(message, type) {
+            sendMessage(message, type);
+        }
+
+        function showLoading(show) {
+            loadingDiv.style.display = show ? 'block' : 'none';
+        }
+
+        // Socket event listeners
+        socket.on('chat_response', (data) => {
+            showLoading(false);
+            addMessage('bot', data.message, data.timestamp);
+            updateKnowledgeStats();
+        });
+
+        socket.on('chat_error', (data) => {
+            showLoading(false);
+            addMessage('bot', `❌ Error: ${data.error}`, data.timestamp);
+        });
+
+        // Event listeners
+        sendBtn.addEventListener('click', () => {
+            sendMessage(messageInput.value);
+        });
+
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage(messageInput.value);
+            }
+        });
+
+        // Update knowledge base statistics
+        async function updateKnowledgeStats() {
+            try {
+                const [cujsRes, slisRes, slosRes, bpRes] = await Promise.all([
+                    fetch('/api/knowledge-base/cujs'),
+                    fetch('/api/knowledge-base/slis'),
+                    fetch('/api/knowledge-base/slos'),
+                    fetch('/api/knowledge-base/best-practices')
+                ]);
+
+                const [cujs, slis, slos, bestPractices] = await Promise.all([
+                    cujsRes.json(),
+                    slisRes.json(),
+                    slosRes.json(),
+                    bpRes.json()
+                ]);
+
+                document.getElementById('cujCount').textContent = cujs.count || 0;
+                document.getElementById('sliCount').textContent = slis.count || 0;
+                document.getElementById('sloCount').textContent = slos.count || 0;
+                document.getElementById('bestPracticesCount').textContent = bestPractices.count || 0;
+            } catch (error) {
+                console.error('Failed to update knowledge stats:', error);
+            }
+        }
+
+        // Initialize
+        updateKnowledgeStats();
+    </script>
+</body>
+</html>

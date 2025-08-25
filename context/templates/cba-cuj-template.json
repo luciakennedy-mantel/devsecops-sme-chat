@@ -1,0 +1,323 @@
+{
+  "metadata": {
+    "version": "1.0",
+    "created_date": "2025-01-18",
+    "template_type": "CBA CUJ Definition",
+    "source": "CBA Observability Framework",
+    "category": "Critical User Journey"
+  },
+  "cuj_definition": {
+    "name": "Template: Payment Processing Journey",
+    "description": "End-to-end payment processing from request to completion",
+    "squad_name": "[Your Squad Name]",
+    "team_members": "[Team Member Names]",
+    
+    "customers_users": {
+      "primary_customer": "end_users",
+      "customer_types": [
+        {
+          "type": "end_users",
+          "description": "Customers making payments through the application"
+        },
+        {
+          "type": "other_apps",
+          "description": "Internal applications that depend on payment processing"
+        },
+        {
+          "type": "other_teams",
+          "description": "Teams that rely on payment services for their workflows"
+        }
+      ]
+    },
+    
+    "journey_flow": {
+      "entry_point": {
+        "description": "User initiates payment request",
+        "trigger": "Payment button clicked or API call received",
+        "systems_involved": ["Web UI", "Mobile App", "API Gateway"]
+      },
+      "exit_point": {
+        "description": "Payment confirmation delivered to user",
+        "completion_criteria": "Payment status (success/failure) communicated",
+        "systems_involved": ["Notification Service", "UI", "Database"]
+      }
+    },
+    
+    "dependencies": {
+      "what_you_depend_on": [
+        {
+          "service": "Account Validation Service",
+          "dependency_type": "external",
+          "criticality": "high",
+          "failure_impact": "Cannot validate account funds"
+        },
+        {
+          "service": "Payment Gateway",
+          "dependency_type": "external",
+          "criticality": "critical",
+          "failure_impact": "Cannot process payments"
+        }
+      ],
+      "what_depends_on_you": [
+        {
+          "service": "Order Management System",
+          "dependency_type": "internal",
+          "criticality": "high",
+          "failure_impact": "Orders cannot be completed"
+        },
+        {
+          "service": "Notification Service",
+          "dependency_type": "internal",
+          "criticality": "medium",
+          "failure_impact": "Payment confirmations delayed"
+        }
+      ],
+      "what_you_deliver": [
+        {
+          "deliverable": "Payment Processing",
+          "description": "Secure and reliable payment transaction processing",
+          "business_value": "Enable customer transactions"
+        },
+        {
+          "deliverable": "Payment Status",
+          "description": "Real-time payment status updates",
+          "business_value": "Customer transparency and trust"
+        }
+      ]
+    },
+    
+    "boundaries_patterns": {
+      "application_boundaries": {
+        "internal_operations": [
+          "Payment request validation",
+          "Transaction logging",
+          "Status tracking",
+          "Error handling"
+        ],
+        "external_integrations": [
+          "Account validation calls",
+          "Payment gateway communication",
+          "Notification delivery"
+        ]
+      },
+      "independent_segments": [
+        {
+          "segment": "Request Validation",
+          "description": "Validate payment request format and basic business rules",
+          "dependencies": "none",
+          "measurable": true
+        },
+        {
+          "segment": "Transaction Processing",
+          "description": "Core payment processing logic",
+          "dependencies": "Payment Gateway",
+          "measurable": true
+        }
+      ]
+    },
+    
+    "failure_modes": [
+      {
+        "failure": "Account validation timeout",
+        "impact": "high",
+        "probability": "medium",
+        "detection_method": "Timeout monitoring",
+        "mitigation": "Retry logic with exponential backoff"
+      },
+      {
+        "failure": "Payment gateway unavailable",
+        "impact": "critical",
+        "probability": "low",
+        "detection_method": "Health check failures",
+        "mitigation": "Circuit breaker pattern, fallback to secondary gateway"
+      },
+      {
+        "failure": "Database connection failure",
+        "impact": "critical",
+        "probability": "low",
+        "detection_method": "Connection pool monitoring",
+        "mitigation": "Connection retry, read replica failover"
+      },
+      {
+        "failure": "Insufficient account funds",
+        "impact": "low",
+        "probability": "high",
+        "detection_method": "Business logic validation",
+        "mitigation": "Clear error messaging to user"
+      }
+    ],
+    
+    "slis": [
+      {
+        "name": "payment_success_rate",
+        "description": "Percentage of successful payment transactions",
+        "measurement_method": "event_based",
+        "business_function": "Payment Processing",
+        "internal_deliverable": "Transaction completion",
+        "query": "sum(rate(payments_total{status='success'}[5m])) / sum(rate(payments_total[5m])) * 100",
+        "unit": "percentage",
+        "data_source": "application_metrics"
+      },
+      {
+        "name": "payment_processing_latency",
+        "description": "Time taken to process payment requests",
+        "measurement_method": "distribution",
+        "business_function": "Payment Processing",
+        "internal_deliverable": "Response time",
+        "query": "histogram_quantile(0.95, rate(payment_duration_seconds_bucket[5m]))",
+        "unit": "seconds",
+        "data_source": "application_metrics"
+      },
+      {
+        "name": "account_validation_success_rate",
+        "description": "Percentage of successful account validations",
+        "measurement_method": "event_based",
+        "business_function": "Account Validation",
+        "internal_deliverable": "Validation result",
+        "query": "sum(rate(account_validations_total{status='success'}[5m])) / sum(rate(account_validations_total[5m])) * 100",
+        "unit": "percentage",
+        "data_source": "application_metrics"
+      }
+    ],
+    
+    "slos": [
+      {
+        "name": "Payment Success SLO",
+        "description": "Maintain high payment success rate",
+        "sli_reference": "payment_success_rate",
+        "target": {
+          "value": 99.5,
+          "unit": "percentage",
+          "comparison": ">="
+        },
+        "time_window": {
+          "duration": "30d",
+          "type": "rolling"
+        },
+        "business_justification": "Critical for customer trust and revenue",
+        "error_budget": {
+          "monthly_budget": "0.5%",
+          "burn_rate_threshold": 2.0
+        }
+      },
+      {
+        "name": "Payment Latency SLO",
+        "description": "Process payments within acceptable time",
+        "sli_reference": "payment_processing_latency",
+        "target": {
+          "value": 5,
+          "unit": "seconds",
+          "comparison": "<="
+        },
+        "time_window": {
+          "duration": "7d",
+          "type": "rolling"
+        },
+        "business_justification": "User experience and conversion rates",
+        "error_budget": {
+          "weekly_budget": "5%",
+          "burn_rate_threshold": 1.5
+        }
+      }
+    ]
+  },
+  
+  "observability_maturity": {
+    "current_level": "[0-3]",
+    "target_level": "[1-3]",
+    "assessment": {
+      "observability_data": {
+        "current_state": "[Add details about current observability data]",
+        "tools_used": "[List current tools - logs/metrics/dashboards]",
+        "accessibility": "[How easily can you access the data]"
+      },
+      "failure_detection": {
+        "current_process": "[How do you currently find out about failures]",
+        "alert_mechanisms": "[Current alerting setup]",
+        "response_time": "[How quickly do you detect issues]"
+      },
+      "reliability_measurement": {
+        "current_metrics": "[How do you currently measure reliability]",
+        "business_alignment": "[How well do metrics align with business expectations]",
+        "improvement_areas": "[Areas needing improvement]"
+      }
+    }
+  },
+  
+  "implementation_plan": {
+    "phase_1": {
+      "name": "Foundation",
+      "tasks": [
+        "Complete CUJ definition",
+        "Identify key SLIs",
+        "Set up basic metrics collection",
+        "Establish baseline measurements"
+      ],
+      "timeline": "2-4 weeks",
+      "success_criteria": "Basic metrics flowing to Obstack"
+    },
+    "phase_2": {
+      "name": "SLO Implementation",
+      "tasks": [
+        "Define SLO targets",
+        "Set up alerting",
+        "Create dashboards",
+        "Establish error budgets"
+      ],
+      "timeline": "2-3 weeks",
+      "success_criteria": "SLO-based alerts operational"
+    },
+    "phase_3": {
+      "name": "Optimization",
+      "tasks": [
+        "Refine alert thresholds",
+        "Optimize dashboards",
+        "Implement proactive monitoring",
+        "Regular SLO reviews"
+      ],
+      "timeline": "Ongoing",
+      "success_criteria": "Proactive issue detection and resolution"
+    }
+  },
+  
+  "tools_integration": {
+    "observe": {
+      "purpose": "Centralized logging for diagnostics",
+      "data_types": ["application_logs", "error_logs", "audit_logs"],
+      "access": "Team members with appropriate permissions"
+    },
+    "obstack": {
+      "purpose": "Metrics storage and SLO alerting",
+      "data_types": ["application_metrics", "business_metrics", "sli_data"],
+      "access": "metrics.cba (Grafana/Prometheus)"
+    },
+    "pagerduty": {
+      "purpose": "Critical alert routing",
+      "configuration": "Team-based routing rules",
+      "escalation": "Defined escalation policies"
+    }
+  },
+  
+  "usage_instructions": {
+    "steps": [
+      "1. Fill in squad_name and team_members",
+      "2. Customize the CUJ based on your specific application",
+      "3. Define your actual customers/users",
+      "4. Map your specific journey flow and dependencies",
+      "5. Identify your application's failure modes",
+      "6. Define measurable SLIs for your key business functions",
+      "7. Set realistic SLO targets based on business requirements",
+      "8. Complete the observability maturity assessment",
+      "9. Create implementation plan with realistic timelines",
+      "10. Begin with Phase 1 and iterate"
+    ],
+    "best_practices": [
+      "Start with one key CUJ and expand iteratively",
+      "Focus on business-critical functions first",
+      "Ensure SLIs are measurable and actionable",
+      "Align SLO targets with actual business needs",
+      "Regular review and refinement of all components",
+      "Engage with CBA Observability team for support"
+    ]
+  }
+}
