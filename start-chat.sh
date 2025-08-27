@@ -21,6 +21,14 @@ if [ ! -d "mcp-server/node_modules" ]; then
     cd ..
 fi
 
+# Build MCP server if needed
+if [ ! -d "mcp-server/build" ]; then
+    echo "🔨 Building MCP server..."
+    cd mcp-server
+    npm run build
+    cd ..
+fi
+
 # Start the chat server
 echo "🚀 Starting chat server at http://localhost:3001"
 cd mcp-server
