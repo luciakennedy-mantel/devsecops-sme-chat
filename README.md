@@ -8,19 +8,16 @@ A DevSecOps documentation chat assistant with AI integration and specialized kno
    ```bash
    git clone https://github.com/luciakennedy-mantel/devsecops-sme-chat.git
    cd devsecops-sme-chat
-   npm install
    ```
 
 2. **Add your API key**
    ```bash
-   cp .env.example .env
-   # Edit .env and add your OpenAI API key
+   cp mcp-server/.env.example mcp-server/.env
+   # Edit mcp-server/.env and add your OpenAI API key
    ```
 
 3. **Start the chat**
    ```bash
-   cd ../Cline/MCP/devsecops-docs-server
-   npm install
    ./start-chat.sh
    ```
    
@@ -36,7 +33,7 @@ A DevSecOps documentation chat assistant with AI integration and specialized kno
 
 ## Configuration
 
-Edit `.env` file:
+Edit `mcp-server/.env` file:
 ```env
 OPENAI_API_KEY=your_api_key_here
 OPENAI_MODEL=gpt-4
